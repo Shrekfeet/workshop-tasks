@@ -675,9 +675,21 @@
         localStorage.setItem("workshopRunningTimers", JSON.stringify(runningTimers));
 
         const card = document.getElementById(`task-${taskId}`);
-        card.style.opacity = "0.62";
+        card.style.opacity = "1";
+        card.style.border = "2px solid #8fd19e";
+        card.style.background = "#f4fff6";
+        
+        const startButton = document.getElementById(`start-${taskId}`);
+        startButton.disabled = true;
+        startButton.textContent = "✅ Completed";
+        startButton.style.background = "#2f7d32";
+        
+        document.getElementById(`finishArea-${taskId}`).innerHTML = `
+          <div class="status" style="background:#e7f4e8; color:#1f5f24; border-color:#8fd19e; font-weight:800;">
+            ✅ Task completed and logged successfully.
+          </div>
+        `;
 
-        document.getElementById(`finishArea-${taskId}`).innerHTML = `<div class="status">✅ Completed and logged.</div>`;
         document.getElementById(`timer-${taskId}`).classList.add("hidden");
 
         setStatus(`${task.name} finished.`);
