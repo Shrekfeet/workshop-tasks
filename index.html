@@ -511,12 +511,18 @@
       return rawTasks.map(task => ({
         id: task.id || task.taskId || task.itemId || "",
         name: task.name || task.taskName || "Untitled task",
-        priority: task.priority || "P3",
+        priority: task.priority || "Low",
+        displayOrder: Number(task.displayOrder || task.order || 999),
         estimated: task.estimated || task.estimatedMinutes || "",
         instructions: task.instructions || "",
         tools: task.tools || task.toolsNeeded || "",
         safety: task.safety || task.safetyNotes || ""
-      })).sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+      })).sort((a, b) => {
+        if (a.displayOrder !== b.displayOrder) {
+          return a.displayOrder - b.displayOrder;
+        }
+        return priorityRank(a.priority) - priorityRank(b.priority);
+      });
     }
 
     function priorityRank(priority) {
