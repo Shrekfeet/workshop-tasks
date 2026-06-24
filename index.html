@@ -690,6 +690,9 @@
     }
 
     async function finishTask(taskId) {
+      if (!confirm("Mark this task as completed?")) {
+        return;
+      }
       const task = tasks.find(t => String(t.id) === String(taskId));
       const running = runningTimers[taskId];
 
@@ -752,6 +755,9 @@
     }
 
     async function reportIssue(taskId) {
+      if (!confirm("Report an issue and stop this task?")) {
+        return;
+      }
       const task = tasks.find(t => String(t.id) === String(taskId));
       const running = runningTimers[taskId];
     
