@@ -435,6 +435,7 @@
     const GET_TASKS_URL = "https://hook.eu2.make.com/wwics0obw5869rq9plsoqa45emmqmwzo";
     const START_TASK_URL = "https://hook.eu2.make.com/ewzpq29kowu9863d8yxgdmrke75w5mi8";
     const FINISH_TASK_URL = "https://hook.eu2.make.com/cq2xccscxv47w4bd4mif9f98vsz5tygi";
+    const REPORT_ISSUE_URL = "https://hook.eu2.make.com/0onh26eaf6hz6qqclff0tyrv01b0apfl";
 
     const taskList = document.getElementById("taskList");
     const mainStatus = document.getElementById("mainStatus");
@@ -631,6 +632,7 @@
               <textarea id="notes-${task.id}" placeholder="Add any notes, faults, or useful details..."></textarea>
               <div class="button-row">
                 <button onclick="finishTask('${escapeJs(task.id)}')">✅ Finish Task</button>
+                <button class="danger" onclick="reportIssue('${escapeJs(task.id)}')">⚠️ Report Issue</button>
               </div>
             </div>
           </div>
@@ -746,6 +748,59 @@
       } catch (error) {
         console.error(error);
         setStatus("Could not finish task. Check your Finish Task webhook.", true);
+      }
+    }
+
+    async function reportIssue(taskId) {
+      const task = tasks.find(t => String(t.id) === String(taskId));
+      const running = runningTimers[taskId];
+    
+      if (!task || !running || !running.logId) {
+        setStatus("Start the task before reporting an issue.", true);
+        return;
+      }
+    
+      const notes = document.getElementById(`notes-${taskId}`).value.trim();
+    
+      if (!notes) {
+        setStatus("Please add notes explaining the issue before reporting it.", true);
+        return;
+      }
+    
+      try {
+        const params = new URLSearchParams({
+          logId: running.logId,
+          notes
+        });
+    
+        const response = await fetch(`${REPORT_ISSUE_URL}?${params.toString()}`);
+        const data = await response.json();
+    
+        if (!data.success) throw new Error("Issue webhook failed.");
+    
+        clearInterval(timerIntervals[taskId]);
+    
+        const startButton = document.getElementById(`start-${taskId}`);
+        startButton.disabled = true;
+        startButton.textContent = "⚠️ Issue Reported";
+        startButton.style.background = "#b42318";
+    
+        document.getElementById(`finishArea-${taskId}`).innerHTML = `
+          <div class="status error" style="font-weight:800;">
+            ⚠️ Issue reported and logged.
+          </div>
+        `;
+    
+        document.getElementById(`timer-${taskId}`).classList.add("hidden");
+    
+        delete runningTimers[taskId];
+        localStorage.setItem("workshopRunningTimers", JSON.stringify(runningTimers));
+    
+        setStatus(`${task.name} marked as issue reported.`);
+        updateStats();
+      } catch (error) {
+        console.error(error);
+        setStatus("Could not report issue. Check your Report Issue webhook.", true);
       }
     }
 
