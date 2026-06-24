@@ -482,8 +482,15 @@
           2) many tasks returned as { tasks: [...] }
         */
         if (Array.isArray(data.tasks)) {
-          tasks = data.tasks;
+
+          // Remove any blank tasks
+          tasks = data.tasks.filter(task =>
+            task &&
+            (task.taskName || task.name)
+          );
+        
         } else if (data.taskId || data.taskName) {
+        
           tasks = [{
             id: data.taskId,
             name: data.taskName,
@@ -493,8 +500,11 @@
             tools: data.tools,
             safety: data.safety
           }];
+        
         } else {
+        
           tasks = [];
+        
         }
 
         tasks = normaliseAndSortTasks(tasks);
@@ -537,7 +547,29 @@
       document.getElementById("taskCount").textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
 
       if (!tasks.length) {
-        taskList.innerHTML = `<div class="panel">No tasks loaded yet.</div>`;
+
+        const mode = document.getElementById("mode").value;
+      
+        taskList.innerHTML = `
+          <div class="panel" style="text-align:center;padding:40px;">
+      
+            <div style="font-size:4rem;">
+              🎉
+            </div>
+      
+            <h2>No ${mode} tasks available</h2>
+      
+            <p style="color:#657265;">
+              Great news! There are currently no tasks assigned to this downtime category.
+            </p>
+      
+            <p style="color:#657265;">
+              Enjoy the unexpected break... or go and make a coffee ☕
+            </p>
+      
+          </div>
+        `;
+      
         return;
       }
 
