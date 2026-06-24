@@ -507,11 +507,9 @@
         
         }
 
-        const selectedMode = document.getElementById("mode").value;
-
         tasks = normaliseAndSortTasks(tasks);
 
-        const selectedMode = document.getElementById("mode").value;
+        const selectedMode = document.getElementById("mode").value.trim();
         
         tasks = tasks.filter(task => {
           const type = String(task.taskType || "").trim();
