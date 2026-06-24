@@ -518,7 +518,9 @@
     }
 
     function normaliseAndSortTasks(rawTasks) {
-      return rawTasks.map(task => ({
+        return rawTasks
+          .filter(task => String(task.enabled || "").toLowerCase() === "yes")
+          .map(task => ({
         id: task.id || task.taskId || task.itemId || "",
         name: task.name || task.taskName || "Untitled task",
         priority: task.priority || "Low",
@@ -526,7 +528,8 @@
         estimated: task.estimated || task.estimatedMinutes || "",
         instructions: task.instructions || "",
         tools: task.tools || task.toolsNeeded || "",
-        safety: task.safety || task.safetyNotes || ""
+        safety: task.safety || task.safetyNotes || "",
+        enabled: task.enabled || ""
       })).sort((a, b) => {
         if (a.displayOrder !== b.displayOrder) {
           return a.displayOrder - b.displayOrder;
