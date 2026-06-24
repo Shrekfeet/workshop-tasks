@@ -507,7 +507,14 @@
         
         }
 
+        const selectedMode = document.getElementById("mode").value;
+
         tasks = normaliseAndSortTasks(tasks);
+        
+        tasks = tasks.filter(task =>
+          task.taskType === selectedMode ||
+          task.taskType === "Any Downtime"
+        );
         renderTasks();
 
         setStatus(tasks.length ? `Loaded ${tasks.length} task(s) for ${mode}.` : `No tasks found for ${mode}.`);
@@ -524,6 +531,7 @@
         id: task.id || task.taskId || task.itemId || "",
         name: task.name || task.taskName || "Untitled task",
         priority: task.priority || "Low",
+        taskType: task.taskType || "",
         displayOrder: Number(task.displayOrder || task.order || 999),
         estimated: task.estimated || task.estimatedMinutes || "",
         instructions: task.instructions || "",
