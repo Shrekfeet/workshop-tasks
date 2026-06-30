@@ -727,7 +727,15 @@
           console.log("Sending Finish Webhook:");
           console.log(finishUrl);
       
-          const response = await fetch(finishUrl);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          
+          const response = await fetch(finishUrl, {
+            method: "GET",
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
       
           const data = await response.json();
       
