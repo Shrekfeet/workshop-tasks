@@ -690,70 +690,107 @@
     }
 
     async function finishTask(taskId) {
-      if (!confirm("Mark this task as completed?")) {
-        return;
-      }
-      const task = tasks.find(t => String(t.id) === String(taskId));
-      const running = runningTimers[taskId];
 
-      if (!task || !running || !running.logId) {
-        setStatus("This task does not have an active log ID. Start it again first.", true);
-        return;
-      }
-
-      const notes = document.getElementById(`notes-${taskId}`).value || "Completed";
-      setStatus("Finishing task...");
-
-      try {
-        const params = new URLSearchParams({
-          logId: running.logId,
-          notes
-        });
-
-        const response = await fetch(`${FINISH_TASK_URL}?${params.toString()}`);
-        const data = await response.json();
-
-        if (!data.success) {
-          throw new Error("Finish webhook did not return success.");
+        if (!confirm("Mark this task as completed?")) {
+          return;
         }
-
-        clearInterval(timerIntervals[taskId]);
-        delete timerIntervals[taskId];
-
-        const visualMinutes = Math.max(1, Math.round((Date.now() - running.startedAt) / 60000));
-        stats.completed += 1;
-        stats.minutes += visualMinutes;
-        saveStats();
-
-        delete runningTimers[taskId];
-        localStorage.setItem("workshopRunningTimers", JSON.stringify(runningTimers));
-
-        const card = document.getElementById(`task-${taskId}`);
-        card.style.opacity = "1";
-        card.style.border = "2px solid #8fd19e";
-        card.style.background = "#f4fff6";
-        
-        const startButton = document.getElementById(`start-${taskId}`);
-        startButton.disabled = true;
-        startButton.textContent = "✅ Completed";
-        startButton.style.background = "#2f7d32";
-        
-        document.getElementById(`finishArea-${taskId}`).innerHTML = `
-          <div class="status" style="background:#e7f4e8; color:#1f5f24; border-color:#8fd19e; font-weight:800;">
-            ✅ Task completed and logged successfully.
-          </div>
-        `;
-
-        document.getElementById(`timer-${taskId}`).classList.add("hidden");
-
-        setStatus(`${task.name} finished.`);
-        updateStats();
-      } catch (error) {
-        console.error(error);
-        setStatus("Could not finish task. Check your Finish Task webhook.", true);
+      
+        const task = tasks.find(t => String(t.id) === String(taskId));
+        const running = runningTimers[taskId];
+      
+        console.log("Task:", task);
+        console.log("Running timer:", running);
+      
+        if (!task) {
+          setStatus("Task not found.", true);
+          return;
+        }
+      
+        if (!running || !running.logId) {
+          setStatus("This task has no active log. Please start it again.", true);
+          console.error("No running timer found:", running);
+          return;
+        }
+      
+        const notes = document.getElementById(`notes-${taskId}`).value || "Completed";
+      
+        setStatus("Finishing task...");
+      
+        try {
+      
+          const params = new URLSearchParams();
+          params.append("logId", running.logId);
+          params.append("notes", notes);
+      
+          const finishUrl = `${FINISH_TASK_URL}?${params.toString()}`;
+      
+          console.log("Sending Finish Webhook:");
+          console.log(finishUrl);
+      
+          const response = await fetch(finishUrl);
+      
+          const data = await response.json();
+      
+          console.log("Finish response:", data);
+      
+          if (!data.success) {
+            throw new Error("Finish webhook did not return success.");
+          }
+      
+          clearInterval(timerIntervals[taskId]);
+          delete timerIntervals[taskId];
+      
+          const visualMinutes = Math.max(
+            1,
+            Math.round((Date.now() - running.startedAt) / 60000)
+          );
+      
+          stats.completed += 1;
+          stats.minutes += visualMinutes;
+      
+          saveStats();
+      
+          delete runningTimers[taskId];
+      
+          localStorage.setItem(
+            "workshopRunningTimers",
+            JSON.stringify(runningTimers)
+          );
+      
+          const card = document.getElementById(`task-${taskId}`);
+      
+          card.style.opacity = "1";
+          card.style.border = "2px solid #8fd19e";
+          card.style.background = "#f4fff6";
+      
+          const startButton = document.getElementById(`start-${taskId}`);
+      
+          startButton.disabled = true;
+          startButton.textContent = "✅ Completed";
+          startButton.style.background = "#2f7d32";
+      
+          document.getElementById(`finishArea-${taskId}`).innerHTML = `
+            <div class="status" style="background:#e7f4e8;color:#1f5f24;border-color:#8fd19e;font-weight:800;">
+              ✅ Task completed and logged successfully.
+            </div>
+          `;
+      
+          document.getElementById(`timer-${taskId}`).classList.add("hidden");
+      
+          setStatus(`${task.name} finished.`);
+      
+          updateStats();
+      
+        } catch (error) {
+      
+          console.error(error);
+      
+          setStatus("Could not finish task. Check your Finish Task webhook.", true);
+      
+        }
+      
       }
-    }
-
+    
     async function reportIssue(taskId) {
       if (!confirm("Report an issue and stop this task?")) {
         return;
